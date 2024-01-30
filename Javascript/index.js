@@ -63,22 +63,19 @@ const buildMonsterCard = (Monster) =>{
   return $card;
 };
 
-fetchAllMonsters().then((monsters)=>{
-  let monstCharacters = monsters.filter((onlyMonst)=>{
-    return onlyMonst.category === "monsters";
-  })
- const monstCards = monstCharacters.map((monst)=>buildMonsterCard(monst));
- for (let card of monstCards){
-  monsterSection.append(card);
- }
-})
+// fetchAllMonsters().then((monsters)=>{
+//   let monstCharacters = monsters.filter((onlyMonst)=>{
+//     return onlyMonst.category === "monsters";
+//   })
+//  const monstCards = monstCharacters.map((monst)=>buildMonsterCard(monst));
+//  for (let card of monstCards){
+//   monsterSection.append(card);
+//  }
+// })
 
 
 
 // Move Monster Card section
-document.addEventListener("DOMContentLoaded",()=>{
-  
-})
 const allMonsterCards = document.querySelectorAll(".monster-Card");
 const faveMonsterSection = document.querySelector('#favs');
 
@@ -87,11 +84,20 @@ const updateCollection = (id,direction) =>{
   
   const monsterItem = document.getElementById(id);
 
+  const iconElement = monsterItem.querySelector('i');
+
   if (direction === "toMonsterSection") {
     monsterSection.append(monsterItem);
+    iconElement.classList.remove("fa-solid");
+    iconElement.classList.remove("red");
+    iconElement.classList.add('fa-regular');
+   
 
   } else if (direction === "toFavesSection"){
     faveMonsterSection.append(monsterItem);
+    iconElement.classList.remove('fa-regular');
+    iconElement.classList.add("fa-solid");
+    iconElement.classList.add("red");
 
   }
 }

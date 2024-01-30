@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./CSS/styles.css">
+    <script src="https://kit.fontawesome.com/cc8f4d7650.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <section class="page-Container">
+
+
+       <!--Main section-->
+      <h1 class="Main-title">Hyrule Monsters</h1>
+
+     <section class="main-section-container">
+        <div id="MCC" class="monster-Card-Container">
+          <div id="0001" class="monster-Card">
+            <div class="monster-card-header">
+              <h3 class="monster-Name">white-maned lynel</h3>
+              <button class="btn-favorites favorites">
+                <i class="fa-regular fa-heart"></i>
+              </button>
+            </div>
+            
+            <div class="monster-Content">
+              <div class="monster-Card-Top">
+                <div class="monster-img">
+                  <img src="https://botw-compendium.herokuapp.com/api/v3/compendium/entry/white-maned_lynel/image" alt="">
+                </div>
+    
+                <div class="monster-Desc">
+                  <h4 class="card-titles">Monster Description</h4>
+                  <p>These fearsome monsters have lived in Hyrule since ancient times. Their ability to breathe fire makes White-Maned Lynels among the toughest of the species; each one of their attacks is an invitation to the grave. There are so few eyewitness accounts of this breed because a White-Maned Lynel is not one to let even simple passersby escape with their lives.</p>
+                </div>
+              </div>
+              
+              <div class="monster-Card-Bottom">
+                <div class="monster-location"> 
+                  <h4 class="card-titles">Common Locations</h4>
+                  <ul class="monster-items">
+                    <li>Hyrule Field</li>
+                    <li>Hebra Mountains</li>
+                  </ul>
+                </div>
+
+                <div class="monster-drops"> 
+                  <h4 class="card-titles">Monster Drops</h4>
+                  <ul class="monster-items">
+                    <li>lynel horn</li>
+                    <li>lynel hoof</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+     </section>
+     
+     <!--Favorites section-->
+     
+     <section class="favorite-Container">
+        <h2>Favorite Monsters</h2>
+
+        <div id="favs" class="monster-Card-Container">
+          
+        </div>
+     </section>
+    </section>
+    <script src="./Javascript/index.js"  ></script>
+  </body>
+</html>
+
+<!--
+  Link to API
+  https://gadhagod.github.io/Hyrule-Compendium-API/#/
+-->

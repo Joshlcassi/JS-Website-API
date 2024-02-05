@@ -127,7 +127,7 @@ fetchAllMonsters().then((monsters)=>{
    `;
  
   topLocationsContainer.appendChild(topLocationsList);
-  // monsterSection.appendChild(topLocationsContainer);
+  
   if ( commLocalSect) {
     commLocalSect.appendChild(topLocationsContainer);
   }
@@ -199,7 +199,6 @@ fetchAllMonsters().then((monsters)=>{
   allMonsterCards.forEach(item =>{
     item.addEventListener('click',()=>{
       const collection = item.parentElement.id;
-      console.log(collection);
       const itemId = item.id;
       let direction;
     
@@ -211,22 +210,17 @@ fetchAllMonsters().then((monsters)=>{
       }
       updateCollection(itemId,direction);
     })
-  })
+  });
 
 
   //Sort monster section
-
   const sortBtn = document.querySelectorAll('.sortBtn');
-
   const sortData = (direction) => {
 
     const newArr = Array.from(allMonsterCards);
-    
-
     newArr.sort((a,b) =>{
       const idA = String(a.id)
       const idB = String(b.id)
-
 
       if (direction === 'asc') {
         return idA.localeCompare(idB) ;
@@ -247,8 +241,6 @@ fetchAllMonsters().then((monsters)=>{
     })
   });
 
-
-  
 
 });
 

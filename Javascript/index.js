@@ -1,6 +1,3 @@
-
-
-// import {Monster} from "./types";
 const monsterSection = document.querySelector("#MCC");
 const monsterList = [];
 const zeldaURL = 'https://botw-compendium.herokuapp.com/api/v3/compendium/all';
@@ -18,8 +15,26 @@ if (!monsterSection) {
 
 const buildMonsterCard = (Monster) =>{
   const $card = document.createElement("div");
-  $card.setAttribute('id',Monster.id);
+  $card.setAttribute('id',Monster.name);
   $card.classList.add("monster-Card");
+
+  let commonLocationsList = '';
+
+  if (Monster.common_locations && Monster.common_locations.length > 0) {
+    commonLocationsList = Monster.common_locations.map(location => `<li>${location}</li>`).join('');
+  } else {
+    commonLocationsList = '<li>No common locations available</li>';
+  }
+
+  let monsterDropList = '';
+
+  if (Monster.drops && Monster.drops.length > 0) {
+    monsterDropList = Monster.drops.map(drops => `<li>${drops}</li>`).join('');
+  } else {
+    monsterDropList = '<li>No Monster Drops available</li>';
+  }
+
+
   $card.innerHTML = `
     <div class="monster-card-header">
       <h3 class="monster-Name">${Monster.name}</h3>
@@ -44,15 +59,15 @@ const buildMonsterCard = (Monster) =>{
         <div class="monster-location"> 
           <h4 class="card-titles">Common Locations</h4>
           <ul class="monster-items">
-            <li>${Monster.common_locations}</li>
+            ${commonLocationsList}
             
           </ul>
         </div>
 
         <div class="monster-drops"> 
           <h4 class="card-titles">Monster Drops</h4>
-          <ul class="monster-items">
-            <li>${Monster.drops}</li>
+          <ul class="monster-items monster-drops">
+            ${monsterDropList}
           
           </ul>
         </div>
@@ -63,61 +78,179 @@ const buildMonsterCard = (Monster) =>{
   return $card;
 };
 
-// fetchAllMonsters().then((monsters)=>{
-//   let monstCharacters = monsters.filter((onlyMonst)=>{
-//     return onlyMonst.category === "monsters";
-//   })
-//  const monstCards = monstCharacters.map((monst)=>buildMonsterCard(monst));
-//  for (let card of monstCards){
-//   monsterSection.append(card);
-//  }
-// })
-
-
-
-// Move Monster Card section
-const allMonsterCards = document.querySelectorAll(".monster-Card");
-const faveMonsterSection = document.querySelector('#favs');
-
-console.log(allMonsterCards);
-const updateCollection = (id,direction) =>{
+  //Monster counter Section
   
-  const monsterItem = document.getElementById(id);
-
-  const iconElement = monsterItem.querySelector('i');
-
-  if (direction === "toMonsterSection") {
-    monsterSection.append(monsterItem);
-    iconElement.classList.remove("fa-solid");
-    iconElement.classList.remove("red");
-    iconElement.classList.add('fa-regular');
-   
-
-  } else if (direction === "toFavesSection"){
-    faveMonsterSection.append(monsterItem);
-    iconElement.classList.remove('fa-regular');
-    iconElement.classList.add("fa-solid");
-    iconElement.classList.add("red");
-
-  }
-}
- 
-allMonsterCards.forEach(item =>{
-  item.addEventListener('click',()=>{
-    const collection = item.parentElement.id;
-    console.log(collection);
-    const itemId = item.id;
-    let direction;
-  
-    if (collection === 'MCC') {
-      direction = 'toFavesSection';
-
-    } else if(collection === 'favs'){
-      direction = 'toMonsterSection';
-    }
-    updateCollection(itemId,direction);
+fetchAllMonsters().then((monsters)=>{
+  let monstCharacters = monsters.filter((onlyMonst)=>{
+    return onlyMonst.category === "monsters";
   })
-})
+
+  const monstCards = monstCharacters.map((monst)=>buildMonsterCard(monst));
+  for (let card of monstCards){
+    monsterSection.append(card);
+    
+  }
+
+   // Count common locations
+   const commonLocationsCounter = {};
+
+   if (monstCharacters && monstCharacters.length>0) {
+    monstCharacters.forEach((monst) => {
+      if (monst.common_locations&&(monst.common_locations).length>0) {
+        monst.common_locations.forEach((location) => {
+          commonLocationsCounter[location] = (commonLocationsCounter[location] || 0) + 1;
+        });
+      }
+    });
+   };
+   
+ 
+   // Sort common locations by count in descending order
+   const sortedCommonLocations = Object.entries(commonLocationsCounter)
+     .sort((a, b) => b[1] - a[1])
+     .slice(0, 3); // Get the top three
+ 
+   // Display the top three common locations and their counts
+   const commLocalSect = document.querySelector('#CLS');
+   const topLocationsList = document.createElement('ul');
+   topLocationsList.classList.add('TLList');
+   sortedCommonLocations.forEach(([location, count]) => {
+     const li = document.createElement('li');
+     li.textContent = `${location}: ${count}`;
+     topLocationsList.appendChild(li);
+   });
+ 
+   const topLocationsContainer = document.createElement('div');
+   topLocationsContainer.classList.add('top-locations-container');
+   topLocationsContainer.innerHTML = `
+     <h4 class="card-titles">Top 3 Common Locations</h4>
+   `;
+ 
+  topLocationsContainer.appendChild(topLocationsList);
+  // monsterSection.appendChild(topLocationsContainer);
+  if ( commLocalSect) {
+    commLocalSect.appendChild(topLocationsContainer);
+  }
+  
+  
+
+  // Local Storage
+  function getFaveLocalStor() {
+    const favorites = localStorage.getItem('favorites');
+    return favorites ? JSON.parse(favorites):[];
+  }
+  
+  function saveFavesToLocal(favorites) {
+    localStorage.setItem('favorites',JSON.stringify(favorites));
+  }
+  
+  function addToFaves(id) {
+    const favorites = getFaveLocalStor();
+    favorites.push(id);
+    saveFavesToLocal(favorites);
+  }
+  
+  function removeFromFaves(id) {
+    let favorites = getFaveLocalStor();
+    favorites = favorites.filter(favId => favId !== id);
+    saveFavesToLocal(favorites);
+  }
+
+  // Move Monster Card section
+  const allMonsterCards = document.querySelectorAll(".monster-Card");
+  const faveMonsterSection = document.querySelector('#favs');
+  const getFavorites = getFaveLocalStor();
+
+  console.log(allMonsterCards);
+
+  const updateCollection = (id,direction) =>{
+    
+    const monsterItem = document.getElementById(id);
+
+    const iconElement = monsterItem.querySelector('i');
+
+    if (direction === "toMonsterSection") {
+      monsterSection.append(monsterItem);
+      iconElement.classList.remove("fa-solid");
+      iconElement.classList.remove("red");
+      iconElement.classList.add('fa-regular');
+      removeFromFaves(id);
+    
+
+    } else if (direction === "toFavesSection"){
+      faveMonsterSection.append(monsterItem);
+      iconElement.classList.remove('fa-regular');
+      iconElement.classList.add("fa-solid");
+      iconElement.classList.add("red");
+      if (getFavorites.includes(id)) {
+        removeFromFaves(id);
+      }
+      addToFaves(id);
+    }
+  }
+  
+  
+
+  getFavorites.forEach(favemonst => {
+    updateCollection(favemonst,'toFavesSection')
+  });
+
+  
+  allMonsterCards.forEach(item =>{
+    item.addEventListener('click',()=>{
+      const collection = item.parentElement.id;
+      console.log(collection);
+      const itemId = item.id;
+      let direction;
+    
+      if (collection === 'MCC') {
+        direction = 'toFavesSection';
+
+      } else if(collection === 'favs'){
+        direction = 'toMonsterSection';
+      }
+      updateCollection(itemId,direction);
+    })
+  })
 
 
-//Sort monster section
+  //Sort monster section
+
+  const sortBtn = document.querySelectorAll('.sortBtn');
+
+  const sortData = (direction) => {
+
+    const newArr = Array.from(allMonsterCards);
+    
+
+    newArr.sort((a,b) =>{
+      const idA = String(a.id)
+      const idB = String(b.id)
+
+
+      if (direction === 'asc') {
+        return idA.localeCompare(idB) ;
+    
+      } else if (direction === 'desc') {
+        return idB.localeCompare(idA) ;
+      }
+    });
+
+    newArr.forEach((item) => {
+      monsterSection.append(item);
+    })
+  }
+
+  sortBtn.forEach(item => {
+    item.addEventListener('click',() => {
+      sortData(item.getAttribute('data-sortdir'));
+    })
+  });
+
+
+  
+
+});
+
+
+

@@ -1,18 +1,78 @@
 const monsterSection = document.querySelector("#MCC");
+const faveMonsterSection = document.querySelector('#favs');
 const monsterList = [];
 const zeldaURL = 'https://botw-compendium.herokuapp.com/api/v3/compendium/all';
+const getFavorites = getFaveLocalStor();
+
+
+
+
+// Count common locations
+const commonLocationsCounter = {};
+
+// Display the top three common locations and their counts
+const commLocalSect = document.querySelector('#CLS');
+const topLocationsList = document.createElement('ul');
+
+// Local Storage
+function getFaveLocalStor() {
+  const favorites = localStorage.getItem('favorites');
+  return favorites ? JSON.parse(favorites):[];
+}
+
+function saveFavesToLocal(favorites) {
+  localStorage.setItem('favorites',JSON.stringify(favorites));
+}
+
+function addToFaves(id) {
+  const favorites = getFaveLocalStor();
+  favorites.push(id);
+  saveFavesToLocal(favorites);
+}
+
+function removeFromFaves(id) {
+  let favorites = getFaveLocalStor();
+  favorites = favorites.filter(favId => favId !== id);
+  saveFavesToLocal(favorites);
+}
+
+
+// Move Monster Card section
+const updateCollection = (id,direction) =>{
+
+  const monsterItem = document.getElementById(id);
+  const iconElement = monsterItem.querySelector('i');
+
+  if (direction === "toMonsterSection") {
+    monsterSection.append(monsterItem);
+    iconElement.classList.remove("fa-solid", "red");
+    iconElement.classList.add('fa-regular');
+    removeFromFaves(id);
+  
+  } else if (direction === "toFavesSection"){
+    faveMonsterSection.append(monsterItem);
+    iconElement.classList.remove('fa-regular');
+    iconElement.classList.add("fa-solid", "red");
+    if (getFavorites.includes(id)) {
+      removeFromFaves(id);
+    }
+    addToFaves(id);
+  }
+};
+
+//Sort monster section
+const sortBtn = document.querySelectorAll('.sortBtn');
 
 if (!monsterSection) {
   throw new Error("Section is not found");  
 }
 
- const fetchAllMonsters = () => 
+const fetchAllMonsters = () => 
   fetch(zeldaURL)
-    .then((res) =>res.json())
-    .then((res)=> res.data);
+  .then((res) =>res.json())
+  .then((res)=> res.data);
+      
     
-    
-
 const buildMonsterCard = (Monster) =>{
   const $card = document.createElement("div");
   $card.setAttribute('id',Monster.name);
@@ -78,8 +138,7 @@ const buildMonsterCard = (Monster) =>{
   return $card;
 };
 
-  //Monster counter Section
-  
+//Monster counter Section
 fetchAllMonsters().then((monsters)=>{
   let monstCharacters = monsters.filter((onlyMonst)=>{
     return onlyMonst.category === "monsters";
@@ -92,8 +151,6 @@ fetchAllMonsters().then((monsters)=>{
   }
 
    // Count common locations
-   const commonLocationsCounter = {};
-
    if (monstCharacters && monstCharacters.length>0) {
     monstCharacters.forEach((monst) => {
       if (monst.common_locations&&(monst.common_locations).length>0) {
@@ -111,15 +168,12 @@ fetchAllMonsters().then((monsters)=>{
      .slice(0, 3); // Get the top three
  
    // Display the top three common locations and their counts
-   const commLocalSect = document.querySelector('#CLS');
-   const topLocationsList = document.createElement('ul');
    topLocationsList.classList.add('TLList');
    sortedCommonLocations.forEach(([location, count]) => {
      const li = document.createElement('li');
      li.textContent = `${location}: ${count}`;
      topLocationsList.appendChild(li);
    });
- 
    const topLocationsContainer = document.createElement('div');
    topLocationsContainer.classList.add('top-locations-container');
    topLocationsContainer.innerHTML = `
@@ -132,69 +186,11 @@ fetchAllMonsters().then((monsters)=>{
     commLocalSect.appendChild(topLocationsContainer);
   }
   
-  
-
-  // Local Storage
-  function getFaveLocalStor() {
-    const favorites = localStorage.getItem('favorites');
-    return favorites ? JSON.parse(favorites):[];
-  }
-  
-  function saveFavesToLocal(favorites) {
-    localStorage.setItem('favorites',JSON.stringify(favorites));
-  }
-  
-  function addToFaves(id) {
-    const favorites = getFaveLocalStor();
-    favorites.push(id);
-    saveFavesToLocal(favorites);
-  }
-  
-  function removeFromFaves(id) {
-    let favorites = getFaveLocalStor();
-    favorites = favorites.filter(favId => favId !== id);
-    saveFavesToLocal(favorites);
-  }
-
   // Move Monster Card section
   const allMonsterCards = document.querySelectorAll(".monster-Card");
-  const faveMonsterSection = document.querySelector('#favs');
-  const getFavorites = getFaveLocalStor();
-
-  console.log(allMonsterCards);
-
-  const updateCollection = (id,direction) =>{
-    
-    const monsterItem = document.getElementById(id);
-
-    const iconElement = monsterItem.querySelector('i');
-
-    if (direction === "toMonsterSection") {
-      monsterSection.append(monsterItem);
-      iconElement.classList.remove("fa-solid");
-      iconElement.classList.remove("red");
-      iconElement.classList.add('fa-regular');
-      removeFromFaves(id);
-    
-
-    } else if (direction === "toFavesSection"){
-      faveMonsterSection.append(monsterItem);
-      iconElement.classList.remove('fa-regular');
-      iconElement.classList.add("fa-solid");
-      iconElement.classList.add("red");
-      if (getFavorites.includes(id)) {
-        removeFromFaves(id);
-      }
-      addToFaves(id);
-    }
-  }
-  
-  
-
   getFavorites.forEach(favemonst => {
     updateCollection(favemonst,'toFavesSection')
   });
-
   
   allMonsterCards.forEach(item =>{
     item.addEventListener('click',()=>{
@@ -214,9 +210,7 @@ fetchAllMonsters().then((monsters)=>{
 
 
   //Sort monster section
-  const sortBtn = document.querySelectorAll('.sortBtn');
   const sortData = (direction) => {
-
     const newArr = Array.from(allMonsterCards);
     newArr.sort((a,b) =>{
       const idA = String(a.id)
@@ -231,7 +225,13 @@ fetchAllMonsters().then((monsters)=>{
     });
 
     newArr.forEach((item) => {
-      monsterSection.append(item);
+      let parID = item.parentElement.id;
+      if (parID === 'MCC') {
+         monsterSection.append(item);
+      } else if (parID === 'favs') {
+        faveMonsterSection.append(item);
+      }
+     
     })
   }
 
@@ -240,8 +240,6 @@ fetchAllMonsters().then((monsters)=>{
       sortData(item.getAttribute('data-sortdir'));
     })
   });
-
-
 });
 
 

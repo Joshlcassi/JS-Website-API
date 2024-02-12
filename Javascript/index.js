@@ -36,8 +36,7 @@ function removeFromFaves(id) {
   saveFavesToLocal(favorites);
 }
 
-
-// Move Monster Card section
+// update Monster Card section
 const updateCollection = (id,direction) =>{
 
   const monsterItem = document.getElementById(id);
@@ -63,16 +62,97 @@ const updateCollection = (id,direction) =>{
 //Sort monster section
 const sortBtn = document.querySelectorAll('.sortBtn');
 
-if (!monsterSection) {
-  throw new Error("Section is not found");  
+//Move Monster cards
+const moveMonstercards = (allMonsterCards)=>{
+  allMonsterCards.forEach(item =>{
+    item.addEventListener('click',()=>{
+      const collection = item.parentElement.id;
+      const itemId = item.id;
+      let direction;
+    
+      if (collection === 'MCC') {
+        direction = 'toFavesSection';
+
+      } else if(collection === 'favs'){
+        direction = 'toMonsterSection';
+      }
+      updateCollection(itemId,direction);
+    })
+  })
 }
 
-const fetchAllMonsters = () => 
-  fetch(zeldaURL)
-  .then((res) =>res.json())
-  .then((res)=> res.data);
-      
+//Sort Monster Cards
+const sortMonsterCard = (allMonsterCards) =>{
+  const sortData = (direction) => {
+    const newArr = Array.from(allMonsterCards);
+    newArr.sort((a,b) =>{
+      const idA = String(a.id)
+      const idB = String(b.id)
+
+      if (direction === 'asc') {
+        return idA.localeCompare(idB) ;
     
+      } else if (direction === 'desc') {
+        return idB.localeCompare(idA) ;
+      }
+    });
+
+    newArr.forEach((item) => {
+      let parID = item.parentElement.id;
+      if (parID === 'MCC') {
+         monsterSection.append(item);
+      } else if (parID === 'favs') {
+        faveMonsterSection.append(item);
+      }
+     
+    })
+  }
+
+  sortBtn.forEach(item => {
+    item.addEventListener('click',() => {
+      sortData(item.getAttribute('data-sortdir'));
+    })
+  });
+}
+
+//Top Locations
+const topLocationCounter = (monstCharacters)=>{
+  if (monstCharacters && monstCharacters.length>0) {
+    monstCharacters.forEach((monst) => {
+      if (monst.common_locations&&(monst.common_locations).length>0) {
+        monst.common_locations.forEach((location) => {
+          commonLocationsCounter[location] = (commonLocationsCounter[location] || 0) + 1;
+        });
+      }
+    });
+    };
+    
+    // Sort common locations by count in descending order
+    const sortedCommonLocations = Object.entries(commonLocationsCounter)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3); // Get the top three
+  
+    // Display the top three common locations and their counts
+    topLocationsList.classList.add('TLList');
+    sortedCommonLocations.forEach(([location, count]) => {
+      const li = document.createElement('li');
+      li.textContent = `${location}: ${count}`;
+      topLocationsList.appendChild(li);
+    });
+    const topLocationsContainer = document.createElement('div');
+    topLocationsContainer.classList.add('top-locations-container');
+    topLocationsContainer.innerHTML = `
+      <h4 class="card-titles">Top 3 Common Locations</h4>
+    `;
+   
+    topLocationsContainer.appendChild(topLocationsList);
+    
+    if ( commLocalSect) {
+      commLocalSect.appendChild(topLocationsContainer);
+    }
+};
+
+//Build Monster cards    
 const buildMonsterCard = (Monster) =>{
   const $card = document.createElement("div");
   $card.setAttribute('id',Monster.name);
@@ -138,53 +218,29 @@ const buildMonsterCard = (Monster) =>{
   return $card;
 };
 
+
+if (!monsterSection) {
+  throw new Error("Section is not found");  
+}
+
+const fetchAllMonsters = () => 
+  fetch(zeldaURL)
+  .then((res) =>res.json())
+  .then((res)=> {
+    return res.data.filter((card) => card.category=== "monsters")
+  });
+      
+
 //Monster counter Section
-fetchAllMonsters().then((monsters)=>{
-  let monstCharacters = monsters.filter((onlyMonst)=>{
-    return onlyMonst.category === "monsters";
-  })
+fetchAllMonsters().then((monstCharacters)=>{
 
   const monstCards = monstCharacters.map((monst)=>buildMonsterCard(monst));
   for (let card of monstCards){
     monsterSection.append(card);
-    
   }
 
-   // Count common locations
-   if (monstCharacters && monstCharacters.length>0) {
-    monstCharacters.forEach((monst) => {
-      if (monst.common_locations&&(monst.common_locations).length>0) {
-        monst.common_locations.forEach((location) => {
-          commonLocationsCounter[location] = (commonLocationsCounter[location] || 0) + 1;
-        });
-      }
-    });
-   };
-   
- 
-   // Sort common locations by count in descending order
-   const sortedCommonLocations = Object.entries(commonLocationsCounter)
-     .sort((a, b) => b[1] - a[1])
-     .slice(0, 3); // Get the top three
- 
-   // Display the top three common locations and their counts
-   topLocationsList.classList.add('TLList');
-   sortedCommonLocations.forEach(([location, count]) => {
-     const li = document.createElement('li');
-     li.textContent = `${location}: ${count}`;
-     topLocationsList.appendChild(li);
-   });
-   const topLocationsContainer = document.createElement('div');
-   topLocationsContainer.classList.add('top-locations-container');
-   topLocationsContainer.innerHTML = `
-     <h4 class="card-titles">Top 3 Common Locations</h4>
-   `;
- 
-  topLocationsContainer.appendChild(topLocationsList);
-  
-  if ( commLocalSect) {
-    commLocalSect.appendChild(topLocationsContainer);
-  }
+  // Count common locations
+  topLocationCounter(monstCharacters);
   
   // Move Monster Card section
   const allMonsterCards = document.querySelectorAll(".monster-Card");
@@ -192,54 +248,10 @@ fetchAllMonsters().then((monsters)=>{
     updateCollection(favemonst,'toFavesSection')
   });
   
-  allMonsterCards.forEach(item =>{
-    item.addEventListener('click',()=>{
-      const collection = item.parentElement.id;
-      const itemId = item.id;
-      let direction;
-    
-      if (collection === 'MCC') {
-        direction = 'toFavesSection';
-
-      } else if(collection === 'favs'){
-        direction = 'toMonsterSection';
-      }
-      updateCollection(itemId,direction);
-    })
-  });
-
+  moveMonstercards(allMonsterCards);
 
   //Sort monster section
-  const sortData = (direction) => {
-    const newArr = Array.from(allMonsterCards);
-    newArr.sort((a,b) =>{
-      const idA = String(a.id)
-      const idB = String(b.id)
-
-      if (direction === 'asc') {
-        return idA.localeCompare(idB) ;
-    
-      } else if (direction === 'desc') {
-        return idB.localeCompare(idA) ;
-      }
-    });
-
-    newArr.forEach((item) => {
-      let parID = item.parentElement.id;
-      if (parID === 'MCC') {
-         monsterSection.append(item);
-      } else if (parID === 'favs') {
-        faveMonsterSection.append(item);
-      }
-     
-    })
-  }
-
-  sortBtn.forEach(item => {
-    item.addEventListener('click',() => {
-      sortData(item.getAttribute('data-sortdir'));
-    })
-  });
+  sortMonsterCard(allMonsterCards);
 });
 
 
